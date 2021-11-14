@@ -13,24 +13,82 @@
     lda #%1
     sta $d027
 
+    lda #$ff  ; maximum frequency value
+    sta $d40e ; voice 3 frequency low byte
+    sta $d40f ; voice 3 frequency high byte
+    lda #$80  ; noise waveform, gate bit off
+    sta $d412 ; voice 3 control register
+
+    lda #$1
+    sta $900
+
 reset:
     lda 0
     sta $d000
     jmp loop
 
+changepos:
+    lda $d41b ; random x position
+    sta $d000
+    lda $d41b ; random y position
+    sta $d001
+    lda #0
+    sta $900
+    jmp wait
+
+incxincy:
+    inc $d000
+    inc $d001
+    jmp wait
+incxdecy:
+    inc $d000
+    dec $d001
+    jmp wait
+decxincy:
+    dec $d000
+    inc $d001
+    jmp wait
+decxdecy:
+    dec $d000
+    dec $d001
+    jmp wait
+
+
+loop:
+    ; lda $d000
+    ; cmp 150
+    ; beq reset
+    ; inc $d000
+    inc $900 ; counter for staying in same position
+    lda $900
+    cmp #50  ; wait between jumps
+    beq changepos
+    lda $d41b  ; random move left of right
+    and #%11
+    cmp #%11
+    beq incxincy
+    and #%01
+    cmp #%01
+    beq decxdecy
+    and #%10
+    cmp #%10
+    beq incxdecy
+    ; and #%00
+    ; cmp #%00
+    jmp decxincy
+    jmp wait
+
+    
+    ; inc $d000
+    ; dec $d001
+    ; jmp wait
+	; jmp loop
+
 wait:
     lda #$ff
     cmp $d012
     bne wait
-
-loop:
-    lda $d000
-    cmp 150
-    beq reset
-    inc $d000
-    jmp wait
-
-	jmp loop
+    jmp loop
 
 	org $2000
 	; incbin "sprite2.spr"
