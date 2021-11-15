@@ -3,15 +3,30 @@
 	
 	lda #$80 ; location of sprite in memory... this is 2000, https://digitalerr0r.net/2011/03/31/commodore-64-programming-4-rendering-sprites/ explains
 	sta $07f8
-	lda #$01
+	sta $07f9 ; 2 sprites are on
+	sta $07fa ; 3 sprites are on
+	sta $07fb ; 4 sprites are on
+	lda #%11
 	sta $d015
 	lda #$80
 	sta $d000
 	sta $d001
-    lda #$1
+	sta $d002
+	sta $d003
+	sta $d004
+	sta $d005
+	sta $d006
+	sta $d007
+    lda #%1111 ; 2 sprites in multi color mode
     sta $d01c
     lda #%1
-    sta $d027
+    sta $d027 ; color modes
+    lda #%1
+    sta $d028
+    lda #%1
+    sta $d029
+    lda #%1
+    sta $d02a
 
     lda #$ff  ; maximum frequency value
     sta $d40e ; voice 3 frequency low byte
@@ -28,30 +43,37 @@ reset:
     jmp loop
 
 changepos:
+    ldx #$0
+changeposnext:
     lda $d41b ; random x position
-    sta $d000
+    sta $d000,X
     lda $d41b ; random y position
-    sta $d001
+    sta $d001,X
+    inx 
+    stx $901
+    lda $901
+    cmp #$4 ; number of sprites
+    bne changeposnext
     lda #0
     sta $900
     jmp wait
 
 incxincy:
-    inc $d000
-    inc $d001
-    jmp wait
+    inc $d000,X
+    inc $d001,X
+    jmp randommovenextafter
 incxdecy:
-    inc $d000
-    dec $d001
-    jmp wait
+    inc $d000,X
+    dec $d001,X
+    jmp randommovenextafter
 decxincy:
-    dec $d000
-    inc $d001
-    jmp wait
+    dec $d000,X
+    inc $d001,X
+    jmp randommovenextafter
 decxdecy:
-    dec $d000
-    dec $d001
-    jmp wait
+    dec $d000,X
+    dec $d001,X
+    jmp randommovenextafter
 
 
 loop:
@@ -63,6 +85,9 @@ loop:
     lda $900
     cmp #50  ; wait between jumps
     beq changepos
+    ; random movements
+    ldx #$0
+randommovenext:
     lda $d41b  ; random move left of right
     and #%11
     cmp #%11
@@ -76,6 +101,12 @@ loop:
     ; and #%00
     ; cmp #%00
     jmp decxincy
+randommovenextafter:
+    inx 
+    stx $901
+    lda $901
+    cmp #$4 ; number of sprites
+    bne randommovenext
     jmp wait
 
     
