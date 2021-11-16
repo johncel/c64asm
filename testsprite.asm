@@ -1,5 +1,19 @@
 	processor	6502
 	org	$1000
+
+    ; clear the screen
+    lda #$00
+    sta $d020
+    sta $d021
+    tax
+    lda #$20
+clearloop:   
+    sta $0400,x
+    sta $0500,x
+    sta $0600,x
+    sta $0700,x
+    dex
+    bne clearloop
 	
 	lda #$80 ; location of sprite in memory... this is 2000, https://digitalerr0r.net/2011/03/31/commodore-64-programming-4-rendering-sprites/ explains
 	sta $07f8
@@ -69,6 +83,32 @@ changeposnext:
     bne changeposnext
     lda #0
     sta $900
+
+    ; move word happy halloween
+    lda $d41b ; y position
+    lsr
+    lsr
+    lsr
+    tax
+    lda SRCLINES,X
+    sta $fb
+    inx
+    lda SRCLINES,X
+    sta $fc
+    lda $d41b ; x position
+    lsr
+    lsr
+    lsr
+    lsr
+    tay
+    lda #8 ; h
+    sta ($fb),Y
+    iny
+    lda #1 ; a
+    sta ($fb),Y
+    
+     
+
     jmp wait
 
 incxincy:
@@ -158,3 +198,5 @@ wait:
     .byte %00101010,%10101010,%10101010
     .byte %10101010,%10101010,%10101010
     .byte %00001000,%10100010,%00001010
+
+SRCLINES    .word $0400, $0428, $0450, $0478, $04A0, $04C8, $04F0, $0518, $0540, $0568, $0590, $05B8, $05E0, $0608, $0630, $0658, $0680, $06A8, $06D0, $06F8, $0720, $0748, $770, $798, $7C0
