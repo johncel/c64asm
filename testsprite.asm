@@ -1,58 +1,9 @@
 	processor	6502
 	org	$1000
 
-    ; clear the screen
-    lda #$00
-    sta $d020
-    sta $d021
-    tax
-    lda #$20
-clearloop:   
-    sta $0400,x
-    sta $0500,x
-    sta $0600,x
-    sta $0700,x
-    dex
-    bne clearloop
+    jsr clearscreen
+    jsr initsprites
 	
-	lda #$80 ; location of sprite in memory... this is 2000, https://digitalerr0r.net/2011/03/31/commodore-64-programming-4-rendering-sprites/ explains
-	sta $07f8
-	sta $07f9 ; 2 sprites are on
-	sta $07fa ; 3 sprites are on
-	sta $07fb ; 4 sprites are on
-	sta $07fc ; 5
-	sta $07fd ; 6 sprites are on
-	sta $07fe ; 7 sprites are on
-	sta $07ff ; 8 sprites are on
-	lda #%11111111 ; 8 sprites on
-	sta $d015
-	lda #$80
-	sta $d000
-	sta $d001
-	sta $d002
-	sta $d003
-	sta $d004
-	sta $d005
-	sta $d006
-	sta $d007
-    lda #%11111111 ; 8 sprites in multi color mode
-    sta $d01c
-    lda #%1
-    sta $d027 ; color modes
-    lda #%1
-    sta $d028
-    lda #%1
-    sta $d029
-    lda #%1
-    sta $d02a
-    lda #%1
-    sta $d02b
-    lda #%1
-    sta $d02c
-    lda #%1
-    sta $d02d
-    lda #%1
-    sta $d02e
 
     lda #$ff  ; maximum frequency value
     sta $d40e ; voice 3 frequency low byte
@@ -69,6 +20,8 @@ reset:
     jmp loop
 
 changepos:
+    jsr clearscreen
+    jsr initsprites
     ldx #$0
 changeposnext:
     lda $d41b ; random x position
@@ -101,13 +54,16 @@ changeposnext:
     lsr
     lsr
     tay
-    lda #8 ; h
+    ldx #0
+wordloop:
+    lda TEXT,X ; letter
+    cmp #0
+    beq wordend
     sta ($fb),Y
     iny
-    lda #1 ; a
-    sta ($fb),Y
-    
-     
+    inx
+    jmp wordloop
+wordend:
 
     jmp wait
 
@@ -175,6 +131,63 @@ wait:
     bne wait
     jmp loop
 
+clearscreen:
+    ; clear the screen
+    lda #$00
+    sta $d020
+    sta $d021
+    tax
+    lda #$20
+clearloop:   
+    sta $0400,x
+    sta $0500,x
+    sta $0600,x
+    sta $0700,x
+    dex
+    bne clearloop
+    rts
+
+initsprites:
+	lda #$80 ; location of sprite in memory... this is 2000, https://digitalerr0r.net/2011/03/31/commodore-64-programming-4-rendering-sprites/ explains
+	sta $07f8
+	sta $07f9 ; 2 sprites are on
+	sta $07fa ; 3 sprites are on
+	sta $07fb ; 4 sprites are on
+	sta $07fc ; 5
+	sta $07fd ; 6 sprites are on
+	sta $07fe ; 7 sprites are on
+	sta $07ff ; 8 sprites are on
+	lda #%11111111 ; 8 sprites on
+	sta $d015
+	lda #$80
+	sta $d000
+	sta $d001
+	sta $d002
+	sta $d003
+	sta $d004
+	sta $d005
+	sta $d006
+	sta $d007
+    lda #%11111111 ; 8 sprites in multi color mode
+    sta $d01c
+    lda #%1
+    sta $d027 ; color modes
+    lda #%1
+    sta $d028
+    lda #%1
+    sta $d029
+    lda #%1
+    sta $d02a
+    lda #%1
+    sta $d02b
+    lda #%1
+    sta $d02c
+    lda #%1
+    sta $d02d
+    lda #%1
+    sta $d02e
+    rts
+
 	org $2000
 	; incbin "sprite2.spr"
     .byte %00000000,%00000000,%00000000
@@ -200,3 +213,4 @@ wait:
     .byte %00001000,%10100010,%00001010
 
 SRCLINES    .word $0400, $0428, $0450, $0478, $04A0, $04C8, $04F0, $0518, $0540, $0568, $0590, $05B8, $05E0, $0608, $0630, $0658, $0680, $06A8, $06D0, $06F8, $0720, $0748, $770, $798, $7C0
+TEXT        .byte  8,1,16,16,25,8,1,12,12,15,23,5,5,14,0
