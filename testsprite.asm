@@ -1,8 +1,10 @@
 	processor	6502
-	org	$1000
+	; org	$1000 ; 4096
+	org	$0950 ; 2384
 
     jsr clearscreen
     jsr initsprites
+    jsr playmusic
 	
 
     lda #$ff  ; maximum frequency value
@@ -18,6 +20,40 @@ reset:
     lda 0
     sta $d000
     jmp loop
+
+playmusic:
+    lda #$00
+    tax
+    tay
+    jsr $1000
+    sei
+    lda #$7f
+    sta $dc0d
+    sta $dd0d
+    lda #$01
+    sta $d01a
+    lda #$1b
+    ldx #$08
+    ldy #$14
+    sta $d011
+    stx $d016
+    sty $d014
+    lda #<irq
+    ldx #>irq
+    ldy #$7e
+    sta $0314
+    stx $0315
+    sty $d012
+    lda $dc0d
+    lda $dd0d
+    asl $d019
+    cli
+    rts
+irq:
+    jsr $1006
+    asl $d019
+    jmp $ea81
+
 
 changepos:
     jsr clearscreen
@@ -92,7 +128,8 @@ loop:
     ; inc $d000
     inc $900 ; counter for staying in same position
     lda $900
-    cmp #50  ; wait between jumps
+    cmp #100  ; wait between jumps
+    ; cmp JUMPDELAY ; wait between jumps
     beq changepos
     ; random movements
     ldx #$0
@@ -188,6 +225,9 @@ initsprites:
     sta $d02e
     rts
 
+    org $1000-$7e
+    INCBIN "jeff_donald.sid"
+
 	org $2000
 	; incbin "sprite2.spr"
     .byte %00000000,%00000000,%00000000
@@ -212,5 +252,7 @@ initsprites:
     .byte %10101010,%10101010,%10101010
     .byte %00001000,%10100010,%00001010
 
+
 SRCLINES    .word $0400, $0428, $0450, $0478, $04A0, $04C8, $04F0, $0518, $0540, $0568, $0590, $05B8, $05E0, $0608, $0630, $0658, $0680, $06A8, $06D0, $06F8, $0720, $0748, $770, $798, $7C0
-TEXT        .byte  8,1,16,16,25,8,1,12,12,15,23,5,5,14,0
+TEXT        .byte  8,1,16,16,25,32,8,1,12,12,15,23,5,5,14,0
+JUMPDELAY   .byte #100
