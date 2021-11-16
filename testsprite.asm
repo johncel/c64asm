@@ -6,7 +6,11 @@
 	sta $07f9 ; 2 sprites are on
 	sta $07fa ; 3 sprites are on
 	sta $07fb ; 4 sprites are on
-	lda #%11
+	sta $07fc ; 5
+	sta $07fd ; 6 sprites are on
+	sta $07fe ; 7 sprites are on
+	sta $07ff ; 8 sprites are on
+	lda #%11111111 ; 8 sprites on
 	sta $d015
 	lda #$80
 	sta $d000
@@ -17,7 +21,7 @@
 	sta $d005
 	sta $d006
 	sta $d007
-    lda #%1111 ; 2 sprites in multi color mode
+    lda #%11111111 ; 8 sprites in multi color mode
     sta $d01c
     lda #%1
     sta $d027 ; color modes
@@ -27,6 +31,14 @@
     sta $d029
     lda #%1
     sta $d02a
+    lda #%1
+    sta $d02b
+    lda #%1
+    sta $d02c
+    lda #%1
+    sta $d02d
+    lda #%1
+    sta $d02e
 
     lda #$ff  ; maximum frequency value
     sta $d40e ; voice 3 frequency low byte
@@ -50,9 +62,10 @@ changeposnext:
     lda $d41b ; random y position
     sta $d001,X
     inx 
+    inx 
     stx $901
     lda $901
-    cmp #$4 ; number of sprites
+    cmp #$10 ; number of sprites x2
     bne changeposnext
     lda #0
     sta $900
@@ -103,9 +116,10 @@ randommovenext:
     jmp decxincy
 randommovenextafter:
     inx 
+    inx 
     stx $901
     lda $901
-    cmp #$4 ; number of sprites
+    cmp #$10 ; number of sprites x2
     bne randommovenext
     jmp wait
 
