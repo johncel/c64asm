@@ -84,6 +84,7 @@ changeposnext:
     lsr
     lsr
     tax
+    stx $904 ; save the row indicator
     lda SRCLINES,X
     sta $fb
     inx
@@ -202,14 +203,36 @@ randomnumberend:
 
 wait:
     ; scroll 1 pixel right
-    lda $d016
+    inc $905
+    lda $905
     cmp #7
     beq set7
-    inc $d016
+    sta $d016
     jmp dowait
 set7:
     lda #0
     sta $d016
+    sta $905
+    ldx $904 ; load the row indicator
+    ; inx ;end of the line
+    lda SRCLINES,X
+    sta $fb
+    inx
+    lda SRCLINES,X
+    sta $fc
+    ldy #38
+set7loop:
+    lda ($fb),Y
+    iny
+    sta ($fb),Y
+    cpy #1
+    beq doneset7
+    dey
+    dey
+    jmp set7loop
+doneset7:
+    
+    
 dowait:
     cmp $d012
     bne dowait
@@ -301,6 +324,8 @@ initsprites:
     .byte %00001000,%10100010,%00001010
 
 
+ROWPTR      .word $904
+SCROLLPTR   .word $905
 RNUM        .word $d41b
 ; RNUM        .word $2500
 ; RNUM        .word $dc08
