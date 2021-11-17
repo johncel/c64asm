@@ -106,25 +106,8 @@ wordloop:
     inx
     jmp wordloop
 wordend:
-
     jmp wait
 
-incxincy:
-    inc $d000,X
-    inc $d001,X
-    jmp randommovenextafter
-incxdecy:
-    inc $d000,X
-    dec $d001,X
-    jmp randommovenextafter
-decxincy:
-    dec $d000,X
-    inc $d001,X
-    jmp randommovenextafter
-decxdecy:
-    dec $d000,X
-    dec $d001,X
-    jmp randommovenextafter
 
 
 loop:
@@ -134,7 +117,8 @@ loop:
     ; inc $d000
     inc $900 ; counter for staying in same position
     lda $900
-    cmp #10  ; wait between jumps
+    ; cmp #10  ; wait between jumps
+    cmp #40  ; wait between jumps
     ; cmp JUMPDELAY ; wait between jumps
     beq changepos
     ; random movements
@@ -165,6 +149,23 @@ randommovenextafter:
     cmp #$a ; number of sprites x2
     bne randommovenext
     jmp wait
+
+incxincy:
+    inc $d000,X
+    inc $d001,X
+    jmp randommovenextafter
+incxdecy:
+    inc $d000,X
+    dec $d001,X
+    jmp randommovenextafter
+decxincy:
+    dec $d000,X
+    inc $d001,X
+    jmp randommovenextafter
+decxdecy:
+    dec $d000,X
+    dec $d001,X
+    jmp randommovenextafter
 
     
     ; inc $d000
@@ -200,9 +201,19 @@ randomnumberend:
     rts
 
 wait:
-    lda #$ff
+    ; scroll 1 pixel right
+    lda $d016
+    cmp #7
+    beq set7
+    inc $d016
+    jmp dowait
+set7:
+    lda #0
+    sta $d016
+dowait:
     cmp $d012
-    bne wait
+    bne dowait
+    lda #$ff
     jmp loop
 
 clearscreen:
