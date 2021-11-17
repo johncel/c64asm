@@ -4,8 +4,8 @@
              lda #$00
              tax
              tay
-             jsr $1000
-             ; jsr $af8b
+             ; jsr $1000
+             jsr $6f00
              sei
              lda #$7f
              sta $dc0d
@@ -30,12 +30,13 @@
              cli
 loop:     jmp loop
 irq:       
-            jsr $1006
-            ; jsr $afe8
+            ; jsr $1006
+            jsr $6f06
             asl $d019
             jmp    $ea81
 
-    org $1000-$7e
-    INCBIN "jeff_donald.sid"
-    ; org $6f00-$7e
-    ; INCBIN "rambo.sid"
+    ; org $1000-$7e
+    ; INCBIN "jeff_donald.sid"
+    org $6f00-$7e
+    ; org $af8b-$7e
+    INCBIN "rambo.sid"

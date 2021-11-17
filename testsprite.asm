@@ -60,9 +60,13 @@ changepos:
     jsr initsprites
     ldx #$0
 changeposnext:
-    lda $d41b ; random x position
+    ; lda $d41b ; random x position
+    ; sta $d000,X
+    ; lda $d41b ; random y position
+    ; sta $d001,X
+    jsr randomnumber
     sta $d000,X
-    lda $d41b ; random y position
+    jsr randomnumber
     sta $d001,X
     inx 
     inx 
@@ -74,7 +78,8 @@ changeposnext:
     sta $900
 
     ; move word happy halloween
-    lda $d41b ; y position
+    ; lda $d41b ; y position
+    jsr randomnumber
     lsr
     lsr
     lsr
@@ -84,7 +89,8 @@ changeposnext:
     inx
     lda SRCLINES,X
     sta $fc
-    lda $d41b ; x position
+    ; lda $d41b ; x position
+    jsr randomnumber
     lsr
     lsr
     lsr
@@ -128,13 +134,15 @@ loop:
     ; inc $d000
     inc $900 ; counter for staying in same position
     lda $900
-    cmp #100  ; wait between jumps
+    cmp #10  ; wait between jumps
     ; cmp JUMPDELAY ; wait between jumps
     beq changepos
     ; random movements
     ldx #$0
+    ; ldy #$0
 randommovenext:
-    lda $d41b  ; random move left of right
+    ; lda $d41b  ; random move left of right
+    jsr randomnumber
     and #%11
     cmp #%11
     beq incxincy
@@ -150,9 +158,11 @@ randommovenext:
 randommovenextafter:
     inx 
     inx 
+    iny
+    ; sty RNUM
     stx $901
     lda $901
-    cmp #$10 ; number of sprites x2
+    cmp #$a ; number of sprites x2
     bne randommovenext
     jmp wait
 
@@ -161,6 +171,25 @@ randommovenextafter:
     ; dec $d001
     ; jmp wait
 	; jmp loop
+
+randomnumber:
+    lda $d41b ; if sid waveform has data, let's use it, then we beebop
+    cmp #0
+    beq randomnumberend
+    stx $902
+    sty $903
+    lda #0
+    jsr $E09A
+    lda $64
+    ldx $902
+    ldy $903
+    ; lda $d41b
+    ; adc $d41c
+    ; adc $d41a
+    ; adc $d419
+randomnumberend:
+    adc #50
+    rts
 
 wait:
     lda #$ff
@@ -253,6 +282,9 @@ initsprites:
     .byte %00001000,%10100010,%00001010
 
 
+RNUM        .word $d41b
+; RNUM        .word $2500
+; RNUM        .word $dc08
 SRCLINES    .word $0400, $0428, $0450, $0478, $04A0, $04C8, $04F0, $0518, $0540, $0568, $0590, $05B8, $05E0, $0608, $0630, $0658, $0680, $06A8, $06D0, $06F8, $0720, $0748, $770, $798, $7C0
 TEXT        .byte  8,1,16,16,25,32,8,1,12,12,15,23,5,5,14,0
 JUMPDELAY   .byte #100
