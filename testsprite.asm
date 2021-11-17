@@ -173,21 +173,29 @@ randommovenextafter:
 	; jmp loop
 
 randomnumber:
-    lda $d41b ; if sid waveform has data, let's use it, then we beebop
-    cmp #0
-    beq randomnumberend
     stx $902
     sty $903
+    ; lda #$00 ; print to screen
+    ; ldx $d41b ; 
+    ; jsr $bdcd
+    lda $d41b ; if sid waveform has data, let's use it, then we beebop
+    cmp #$0
+    beq callrnd
+    lda $d41b ; if sid waveform has data, let's use it, then we beebop
+    cmp #$ff
+    beq callrnd
+    jmp randomnumberend
+callrnd:
     lda #0
     jsr $E09A
     lda $64
-    ldx $902
-    ldy $903
     ; lda $d41b
     ; adc $d41c
     ; adc $d41a
     ; adc $d419
 randomnumberend:
+    ldx $902
+    ldy $903
     adc #50
     rts
 
