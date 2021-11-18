@@ -142,8 +142,8 @@ loop:
     ; inc $d000
     inc $900 ; counter for staying in same position
     lda $900
-    ; cmp #10  ; wait between jumps
-    cmp #254  ; wait between jumps
+    cmp #85  ; wait between jumps
+    ; cmp #254  ; wait between jumps
     ; cmp JUMPDELAY ; wait between jumps
     beq changeposjmp
     ; random movements
@@ -157,18 +157,26 @@ randommovenext:
     ldy #254
     sty $907
     jsr randomnumber
-    and #%11
-    cmp #%11
-    beq incxincy
-    and #%01
-    cmp #%01
-    beq decxdecy
-    and #%10
-    cmp #%10
-    beq incxdecy
-    ; and #%00
-    ; cmp #%00
-    jmp decxincy
+    sta $fb 
+    lsr
+    asl ; shift right then left to see if number was even or odd
+    cmp $fb
+    beq incx
+    jmp decx 
+randomy:
+    inc $d000,X ; everything travels right on average
+    clc
+    ldy #0
+    sty $906
+    ldy #254
+    sty $907
+    jsr randomnumber
+    sta $fb 
+    lsr
+    asl ; shift right then left to see if number was even or odd
+    cmp $fb
+    beq incy
+    jmp decy 
 randommovenextafter:
     inx 
     inx 
@@ -180,28 +188,22 @@ randommovenextafter:
     bne randommovenext
     jmp wait
 
-incxincy:
+incx:
     inc $d000,X
-    inc $d001,X
-    jmp randommovenextafter
-incxdecy:
-    inc $d000,X
-    dec $d001,X
-    jmp randommovenextafter
-decxincy:
+    clc
+    jmp randomy
+decx:
     dec $d000,X
+    clc
+    jmp randomy
+incy:
     inc $d001,X
+    clc
     jmp randommovenextafter
-decxdecy:
-    dec $d000,X
+decy:
     dec $d001,X
+    clc
     jmp randommovenextafter
-
-    
-    ; inc $d000
-    ; dec $d001
-    ; jmp wait
-	; jmp loop
 
 printbyte:
     stx $910
@@ -335,7 +337,9 @@ dowait:
 clearscreen:
     ; clear the screen
     lda #$00
-    sta $d020
+    sta $d016 ; reset horizontal scroll
+    sta $905
+    sta $d020 ; clear screen
     sta $d021
     tax
     lda #$20
