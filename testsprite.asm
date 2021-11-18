@@ -64,8 +64,16 @@ changeposnext:
     ; sta $d000,X
     ; lda $d41b ; random y position
     ; sta $d001,X
+    ldy #50
+    sty $906
+    ldy #180
+    sty $907
     jsr randomnumber
     sta $d000,X
+    ldy #50
+    sty $906
+    ldy #180
+    sty $907
     jsr randomnumber
     sta $d001,X
     inx 
@@ -79,10 +87,18 @@ changeposnext:
 
     ; move word happy halloween
     ; lda $d41b ; y position
+    ldy #1
+    sty $906
+    ldy #50 ; there are 25 rows, we need double  since SRCLINES are words
+    sty $907
     jsr randomnumber
     lsr
-    lsr
-    lsr
+    asl ; we need an even number
+    ; lda #34
+    ; debug
+    ; sta $913
+    ; jsr printbyte
+    ;;;;;;;;;;
     tax
     stx $904 ; save the row indicator
     lda SRCLINES,X
@@ -91,11 +107,12 @@ changeposnext:
     lda SRCLINES,X
     sta $fc
     ; lda $d41b ; x position
-    jsr randomnumber
-    lsr
-    lsr
-    lsr
-    lsr
+    ; ldy #1
+    ; sty $906
+    ; ldy #30
+    ; sty $907
+    ; jsr randomnumber
+    lda #1
     tay
     ldx #0
 wordloop:
@@ -110,6 +127,8 @@ wordend:
     jmp wait
 
 
+changeposjmp:
+    jmp changepos
 
 loop:
     ; lda $d000
@@ -119,14 +138,19 @@ loop:
     inc $900 ; counter for staying in same position
     lda $900
     ; cmp #10  ; wait between jumps
-    cmp #40  ; wait between jumps
+    cmp #254  ; wait between jumps
     ; cmp JUMPDELAY ; wait between jumps
-    beq changepos
+    beq changeposjmp
     ; random movements
     ldx #$0
     ; ldy #$0
 randommovenext:
     ; lda $d41b  ; random move left of right
+    ; jmp incxincy
+    ldy #0
+    sty $906
+    ldy #254
+    sty $907
     jsr randomnumber
     and #%11
     cmp #%11
@@ -143,11 +167,11 @@ randommovenext:
 randommovenextafter:
     inx 
     inx 
-    iny
+    ; iny
     ; sty RNUM
     stx $901
     lda $901
-    cmp #$a ; number of sprites x2
+    cmp #$10 ; number of sprites x2
     bne randommovenext
     jmp wait
 
@@ -174,6 +198,16 @@ decxdecy:
     ; jmp wait
 	; jmp loop
 
+printbyte:
+    stx $910
+    sta $911
+    lda #$00 ; print to screen
+    ldx $913 ;
+    jsr $bdcd
+    lda $911
+    ldx $910
+    rts
+
 randomnumber:
     stx $902
     sty $903
@@ -191,14 +225,23 @@ callrnd:
     lda #0
     jsr $E09A
     lda $64
-    ; lda $d41b
-    ; adc $d41c
-    ; adc $d41a
-    ; adc $d419
 randomnumberend:
+    ; 906 is L 907 is R
+    sta $908 ; save off the random number that is in the accumulator
+;    jmp skipcompareremoveme
+    lda $907 ; put the R in the accumulator
+    sbc $906 ; subtract L
+    adc #1
+    ; sta $913
+    ; jsr printbyte
+    sta $909 ; hold onto the max value
+    lda $908 ; put the random number back
+    cmp $909  ; compare to U-L+1
+    bcs callrnd   ; branch if value > U-L+1
+;skipcompareremoveme:
+    adc $906 ; add L
     ldx $902
     ldy $903
-    adc #50
     rts
 
 wait:
@@ -323,9 +366,17 @@ initsprites:
     .byte %10101010,%10101010,%10101010
     .byte %00001000,%10100010,%00001010
 
-
+SUBTMP1     .word $902
+SUBTMP2     .word $903
 ROWPTR      .word $904
 SCROLLPTR   .word $905
+RNUMMIN     .word $906
+RNUMMAX     .word $907
+RNUMTMP     .word $908
+RNUMTMP2     .word $909
+PRINTBYTETMP .word $910
+PRINTBYTETMP2 .word $911
+PRINTBYTEVALUE .word $913
 RNUM        .word $d41b
 ; RNUM        .word $2500
 ; RNUM        .word $dc08
