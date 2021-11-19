@@ -107,10 +107,10 @@ changeposnext:
     tax
     stx $904 ; save the row indicator
     lda SRCLINES,X
-    sta $fb
+    sta $fd
     inx
     lda SRCLINES,X
-    sta $fc
+    sta $fe
     ; lda $d41b ; x position
     ; ldy #1
     ; sty $906
@@ -124,7 +124,7 @@ wordloop:
     lda TEXT,X ; letter
     cmp #0
     beq wordend
-    sta ($fb),Y
+    sta ($fd),Y
     iny
     inx
     jmp wordloop
@@ -164,7 +164,7 @@ randommovenext:
     beq incx
     jmp decx 
 randomy:
-    inc $d000,X ; everything travels right on average
+    ; inc $d000,X ; everything travels right on average
     clc
     ldy #0
     sty $906
@@ -297,6 +297,7 @@ randomnumberend:
     rts
 
 wait:
+    ; jmp dowait ; skip scroll
     ; scroll 1 pixel right
     inc $905
     lda $905
