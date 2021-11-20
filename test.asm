@@ -10,3 +10,4 @@ loop:   inc $d020 ; increment BG color
         lda $dc01
         and #$10
         bne loop
+
