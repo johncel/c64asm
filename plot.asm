@@ -94,12 +94,50 @@ past1:
 
     jsr clearbitmapscreen
     jsr clearscreen
-    jmp sleep
+    ; jmp sleep
     lda #1
-    sta pointX
-    sta pointY
-    ; jsr plotloop
-    jmp sleep
+    sta $903 ; skip count, move down 1 for every move right
+    sta $905
+spin:
+    lda #1
+    lda $903 ; load prev skip
+    sta $906
+    lda $905
+    sta $903
+    lda #1
+    sta $901
+    sta $902
+    lda #0
+    sta drawmode
+    jsr plotloop
+    
+
+    lda $906
+    sta $903 ; put back orig skip
+    lda #1
+    sta $901
+    sta $902
+    lda #1
+    sta drawmode
+    jsr plotloop
+    jsr dowait
+    lda $903
+    sta $905 ; save last skip
+    inc $903
+    lda $903
+    cmp #10
+    beq resetskip
+    jmp spin
+resetskip
+    lda #1
+    sta $903
+    jmp spin
+
+dowait:
+    lda #$ff
+    cmp $d012
+    bne dowait
+    rts
 
 
 sleep:
@@ -134,13 +172,33 @@ setmemorypast:
     rts
 
 plotloop:
+    lda #0
+    sta $904
+plotloopinner:
+    clc
+    lda $901 ; just in case plotPoint messes with pointX,pointY -- remove this hack later for speed
+    sta pointX
+    lda #0
+    sta pointX+1
+    lda $902
+    sta pointY
     jsr plotPoint
-    inc pointX
-    inc pointY
-    lda pointX
+    lda $904 ; count of skip count
+    cmp $903
+    beq doincx
+    inc $904
+afterdoincx:
+    inc $902
+    lda $902
     cmp #200
-    bne plotloop
+    bne plotloopinner
     rts
+
+doincx:
+    inc $901
+    lda #0
+    sta $904 ; reset skip count
+    jmp afterdoincx
 
 clearscreen:
     ; clear the screen
@@ -195,7 +253,8 @@ pointY =*                   ;0-199
 drawmode =*                 ;0 = erase point, 1 =set point
     .byte 1
 
-screen = $2000              ;for example
+; screen = $2000              ;for example
+screen = 8192              ;for example
 dest = $fb
 
 
