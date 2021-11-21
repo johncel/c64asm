@@ -93,8 +93,8 @@ past1:
     jsr setmemory
 
     jsr clearbitmapscreen
-    jmp sleep
     jsr clearscreen
+    jmp sleep
     lda #1
     sta pointX
     sta pointY
