@@ -13,21 +13,92 @@
     org $950  ; 2384
 
     ; lda #%00111011          ; Enable bitmap mode
-    lda #%00010000
-    ora $d011
-    sta $d011  ; only set the 5th byte
-    
-    ; sta $D011
-    jsr clearscreen
-
-    lda #%00111011          ; Enable bitmap mode
     ; lda #%00010000
     ; ora $d011
+    ; sta $d011  ; only set the 5th byte
+    
+    ; sta $D011
+    ; jsr clearscreen
+
+    ; lda #%00111011          ; Enable bitmap mode for first register
+    ; lda #%00010000          ; Enable bitmap mode for first register
+    ; lda #%00010000
+    ; ora $d011
+    ; POKE 53272,PEEK(53272)OR8
+    lda $d018
+    ora #8
+    sta $d018 
+    ; POKE 53265,PEEK(53265)OR32
+    lda $d011 
+    ora #32
     sta $d011  ; set all of the bytes
+
+    ; checker board
+    ;10 POKE 53272,PEEK(53272)OR8:POKE 53265,PEEK(53265)OR32
+    ; 20 FORI=8192TO16191 STEP 8
+    lda #<$2000
+    sta $fb
+    lda #>$2000
+    sta $fc
+checkerloop:
+    ; 30 POKEI,240:POKEI+1,240:POKEI+2,240:POKEI+3,240
+    lda #240
+    ldy #0
+    sta ($fb),Y
+    iny
+    sta ($fb),Y
+    iny
+    sta ($fb),Y
+    iny
+    sta ($fb),Y
+    ; 40 POKEI+4,15:POKEI+5,15:POKEI+6,15:POKEI+7,15
+    lda #15
+    iny
+    sta ($fb),Y
+    iny
+    sta ($fb),Y
+    iny
+    sta ($fb),Y
+    iny
+    sta ($fb),Y
+; next logic
+    ; 50 NEXT
+    clc
+    lda $fb
+    adc #8
+    sta $fb
+    lda $fc
+    adc #0
+    sta $fc
+    cmp #$40
+    bne checkerloop
+    clc
+    lda $fb
+    cmp $40
+    beq past1
+    jmp checkerloop
+
+past1:
+    ; 60 FORI=1024TO2034:POKEI,251:NEXT
+    lda #<$400
+    sta $fb
+    lda #>$400
+    sta $fc
+    lda #<$7f2
+    sta $fd
+    lda #>$7f2
+    sta $fe
+    lda #251
+    sta $ff
+    jsr setmemory
+
+    jsr clearbitmapscreen
+    jmp sleep
+    jsr clearscreen
     lda #1
     sta pointX
     sta pointY
-    jsr plotloop
+    ; jsr plotloop
     jmp sleep
 
 
@@ -36,6 +107,31 @@ sleep:
     ; stx $913
     ; jsr printbyte
     jmp sleep
+
+setmemory: ; $fb is lower start byte, $fc is upper start byte, $fd is lower stop byte, $fe is upper stop byte, $ff is value to set
+setmemoryloop:
+    lda $ff
+    ldy #0
+    sta ($fb),Y
+; next logic
+    ; 50 NEXT
+    clc
+    lda $fb
+    adc #1
+    sta $fb
+    lda $fc
+    adc #0
+    sta $fc
+    clc
+    cmp $fe
+    bne setmemoryloop
+    lda $fb
+    cmp $fd
+    beq setmemorypast
+    jmp setmemoryloop
+
+setmemorypast:
+    rts
 
 plotloop:
     jsr plotPoint
@@ -49,7 +145,7 @@ plotloop:
 clearscreen:
     ; clear the screen
     lda #$00
-    sta $d016 ; reset horizontal scroll
+    ; sta $d016 ; reset horizontal scroll
     sta $d020 ; clear screen
     sta $d021
     tax
@@ -65,28 +161,18 @@ clearloop:
     rts
     
 clearbitmapscreen:
+    lda #<$2000
+    sta $fb
+    lda #>$2000
+    sta $fc
+    lda #<$3f3f
+    sta $fd
+    lda #>$3f3f
+    sta $fe
+    lda #0
+    sta $ff
+    jsr setmemory
     ldx #0
-clearscreenloop:
-    ; sta $2000,X
-    ; sta $2100,X
-    ; sta $2200,X
-    ; sta $2300,X
-    ; sta $2500,X
-    ; sta $2600,X
-    ; sta $2700,X
-    ; sta $2800,X
-    ; sta $2900,X
-    ; sta $2a00,X
-    ; sta $2b00,X
-    ; sta $2c00,X
-    ; sta $2d00,X
-    ; sta $2e00,X
-    ; sta $2f00,X
-    ; cpx #255
-    ; beq loop
-    ; inx
-    ; jmp clearscreenloop
-    ; ; clear the char screen
     rts
 
 printbyte:
