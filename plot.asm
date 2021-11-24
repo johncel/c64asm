@@ -12,19 +12,33 @@
     processor 6502
     org $950  ; 2384
 
-    ; lda #%00111011          ; Enable bitmap mode
-    ; lda #%00010000
-    ; ora $d011
-    ; sta $d011  ; only set the 5th byte
+    ; copy characters somewhere before we can not see them any longer 
+    ; memcopy: $fb is lower from byte, $fc is upper from byte, $fd is lower to byte, $fe is upper to byte, $ff is number of bytes to copy
+    ; clc
+    ; lda #<$1c25
+    ; sta $fb
+    ; lda #>$1c25
+    ; sta $fc
+    ; lda #<$800
+    ; sta $fd
+    ; lda #>$800
+    ; sta $fe
+    ; lda #$ff
+    ; sta $ff
+    ; jsr memcopy
+    ; lda #<$800
+    ; sta $fb
+    ; lda #>$800
+    ; sta $fc
+    ; lda #<$808
+    ; sta $fd
+    ; lda #>$808
+    ; sta $fe
+    ; lda #%10101010
+    ; sta $ff
+    ; jsr setmemory
     
-    ; sta $D011
-    ; jsr clearscreen
 
-    ; lda #%00111011          ; Enable bitmap mode for first register
-    ; lda #%00010000          ; Enable bitmap mode for first register
-    ; lda #%00010000
-    ; ora $d011
-    ; POKE 53272,PEEK(53272)OR8
     lda $d018
     ora #8
     sta $d018 
@@ -34,6 +48,7 @@
     sta $d011  ; set all of the bytes
 
     ; checker board
+    ; jmp skipcheckerboard
     ;10 POKE 53272,PEEK(53272)OR8:POKE 53265,PEEK(53265)OR32
     ; 20 FORI=8192TO16191 STEP 8
     lda #<$2000
@@ -95,6 +110,7 @@ past1:
     jsr clearbitmapscreen
     jsr clearscreen
     ; jmp sleep
+skipcheckerboard:
     lda #1
     sta $903 ; skip count, move down 1 for every move right
     sta $905
@@ -110,6 +126,20 @@ spin:
     lda #0
     sta drawmode
     jsr plotloop
+
+    ; memcopy: $fb is lower from byte, $fc is upper from byte, $fd is lower to byte, $fe is upper to byte, $ff is number of bytes to copy
+    clc
+    lda #<$4000
+    sta $fb
+    lda #>$4000
+    sta $fc
+    lda #<$2150
+    sta $fd
+    lda #>$2150
+    sta $fe
+    lda #8
+    sta $ff
+    jsr memcopy
     
 
     lda $906
@@ -169,6 +199,19 @@ setmemoryloop:
     jmp setmemoryloop
 
 setmemorypast:
+    rts
+
+
+memcopy: ; $fb is lower from byte, $fc is upper from byte, $fd is lower to byte, $fe is upper to byte, $ff is number of bytes to copy
+    ldy #255
+    ldx #0
+memcopyloop:
+    iny
+    lda ($fb),Y
+    sta ($fd),Y
+; next logic
+    cpy $ff
+    bne memcopyloop
     rts
 
 plotloop:
@@ -387,3 +430,7 @@ tbl_andbit =*
     .byte %11111011
     .byte %11111101
     .byte %11111110
+
+    org $4000
+    INCBIN "c64-chars.bin"
+
