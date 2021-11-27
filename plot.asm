@@ -127,20 +127,9 @@ spin:
     sta drawmode
     jsr plotloop
 
-    ; memcopy: $fb is lower from byte, $fc is upper from byte, $fd is lower to byte, $fe is upper to byte, $ff is number of bytes to copy
-    clc
-    lda #<$4000
-    sta $fb
-    lda #>$4000
-    sta $fc
-    lda #<$2150
-    sta $fd
-    lda #>$2150
-    sta $fe
-    lda #8
-    sta $ff
-    jsr memcopy
-    
+    lda #10
+    sta plotcharcode
+    jsr plotchar 
 
     lda $906
     sta $903 ; put back orig skip
@@ -169,6 +158,34 @@ dowait:
     bne dowait
     rts
 
+plotchar:
+    ; memcopy: $fb is lower from byte, $fc is upper from byte, $fd is lower to byte, $fe is upper to byte, $ff is number of bytes to copy
+    clc
+    lda #<$4000
+    sta $fb
+    lda #>$4000
+    sta $fc
+
+    ; add the char number times 8 bytes
+    asl plotcharcode
+    asl plotcharcode
+    asl plotcharcode
+    lda $fb
+    adc plotcharcode
+    sta $fb
+    lda $fc
+    adc #0
+    sta $fc
+    
+
+    lda #<$2150
+    sta $fd
+    lda #>$2150
+    sta $fe
+    lda #8
+    sta $ff
+    jsr memcopy
+    rts
 
 sleep:
     ; debug
@@ -434,3 +451,5 @@ tbl_andbit =*
     org $4000
     INCBIN "c64-chars.bin"
 
+plotcharcode = $912
+plotcharoffset = $913
