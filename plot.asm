@@ -145,12 +145,21 @@ wordloop:
     jmp wordloop
 wordend:
 
+    inc movingscroll
+    lda movingscroll 
+    cmp #8
+    bne noset7
+    lda #0
+    sta movingscroll
     inc movingcol
     lda movingcol
     cmp #40
     bne wordfinal
     lda #5
     sta movingcol
+noset7:
+    sta $d016
+
 
 wordfinal:
 
@@ -500,10 +509,11 @@ plotcharrow .byte #0
 plotcharcol .byte #0
 charcounter .byte #0
 movingcol .byte #1
+movingscroll .byte #0
 plotcharlines    .word $2000,$2140,$2280,$23c0,$2500,$2640,$2780,$28c0,$2a00,$2b40,$2c80,$2dc0,$2f00,$3040,$3180,$32c0,$3400,$3540,$3680,$37c0,$3900,$3a40,$3b80,$3cc0,$3e00
 TEXT        .byte  32,8,1,16,16,25,32,8,1,12,12,15,23,5,5,14,32,0
 ; TEXT        .byte  32,1,2,3,4,5,6,7,8,9,10,11,12,24,25,26,27,28,29,30,31,32,33,34,35,36,0
 
     org $4000
-    INCBIN "c64-chars.bin"
+        INCBIN "c64-chars.bin"
 
