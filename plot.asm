@@ -193,9 +193,11 @@ dowait:
 plotchar:
     ; memcopy: $fb is lower from byte, $fc is upper from byte, $fd is lower to byte, $fe is upper to byte, $ff is number of bytes to copy
     clc
-    lda #<$4000
+    ; lda #<$4000
+    lda #<CHARS
     sta $fb
-    lda #>$4000
+    ; lda #>$4000
+    lda #>CHARS
     sta $fc
 
     ; add the char number times 8 bytes
@@ -514,6 +516,8 @@ plotcharlines    .word $2000,$2140,$2280,$23c0,$2500,$2640,$2780,$28c0,$2a00,$2b
 TEXT        .byte  32,8,1,16,16,25,32,8,1,12,12,15,23,5,5,14,32,0
 ; TEXT        .byte  32,1,2,3,4,5,6,7,8,9,10,11,12,24,25,26,27,28,29,30,31,32,33,34,35,36,0
 
-    org $4000
-        INCBIN "c64-chars.bin"
+;    org $4000
+CHARS = *
+    ;    INCBIN "c64-chars.bin"
+        INCBIN "aeg_collection_06.64c"
 
